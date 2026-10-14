@@ -96,7 +96,7 @@ def build(out_dir):
     plot_boats(
         ww_boats,
         title=f"Whale Watch Boats - Salish Sea ({now.astimezone(LOCAL_TZ).strftime('%Y-%m-%d %H:%M:%S %Z')})",
-        output=os.path.join(out_dir, "latest.png"),
+        output=os.path.join(out_dir, "whale-watch.png"),
         zoom_factor=3,
     )
     plt.close("all")
@@ -109,7 +109,9 @@ def build(out_dir):
         print(f"{site.slug}: {len(nearby)} moving vessels in zone")
 
     with open(os.path.join(out_dir, "index.html"), "w") as f:
-        f.write(render_template("index.html", UPDATED_AT=updated, CACHE_BUST=cache_bust))
+        f.write(render_template("index.html"))
+    with open(os.path.join(out_dir, "whale-watch.html"), "w") as f:
+        f.write(render_template("whale-watch.html", UPDATED_AT=updated, CACHE_BUST=cache_bust))
     with open(os.path.join(out_dir, "hydrophones.html"), "w") as f:
         f.write(render_template("hydrophones.html", UPDATED_AT=updated, SITE_CARDS="\n".join(cards)))
 

@@ -3,7 +3,7 @@
 Fetches current AIS positions of Salish Sea whale watch boats from [AISHub](https://www.aishub.net/) and plots them on an OpenStreetMap basemap.
 
 Live pages (rebuilt every ~30 min by GitHub Actions):
-- Whale watch boats: https://orcasound.github.io/ais-shipnoise/
+- Whale watch boats: https://orcasound.github.io/ais-shipnoise/whale-watch.html
 - Moving vessels near each hydrophone node: https://orcasound.github.io/ais-shipnoise/hydrophones.html
 
 Each run makes a single AISHub area request (`build_site.py`) that feeds both pages, keeping well under AISHub's rate limit.
