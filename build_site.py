@@ -20,6 +20,8 @@ LOCAL_TZ = ZoneInfo("America/Los_Angeles")
 # Covers the whale watch map and every hydrophone node (latmin, latmax, lonmin, lonmax)
 REGION = (47.25, 49.3, -124.2, -122.0)
 
+LIVE_LISTEN_URL = "https://live.orcasound.net/listen/{slug}"
+
 WEB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
 
 
@@ -78,7 +80,11 @@ def site_card(site, nearby, cache_bust):
         f'<section class="card" id="{site.slug}">'
         f"<h2>{html.escape(site.name)} <span class=\"count\">{len(nearby)}</span></h2>"
         f'<p class="zone">Listening zone {site.az_min}°–{site.az_max}°, {site.max_range_km} km</p>'
+        '<div class="map">'
         f'<a href="{img}"><img src="{img}?v={cache_bust}" alt="Map of moving vessels near {html.escape(site.name)}"></a>'
+        f'<a class="listen" href="{LIVE_LISTEN_URL.format(slug=site.slug)}" target="_blank" rel="noopener" '
+        f'aria-label="Listen live to {html.escape(site.name)} on live.orcasound.net">&#9654; Listen live</a>'
+        "</div>"
         f"{table}</section>"
     )
 
