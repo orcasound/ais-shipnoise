@@ -23,6 +23,11 @@ class Site:
     az_max: float
     max_range_km: float
 
+    @property
+    def stream_node(self):
+        """Folder for this node's HLS audio in the Orcasound audio bucket, e.g. rpi_orcasound_lab."""
+        return "rpi_" + self.slug.replace("-", "_")
+
 
 SITES: list[Site] = [
     Site("north-sjc", "North San Juan Channel", 48.5913, -123.0588, 328, 133, 10),

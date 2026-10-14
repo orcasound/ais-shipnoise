@@ -7,6 +7,7 @@ Live pages (rebuilt every ~30 min by GitHub Actions):
 - Moving vessels near each hydrophone node: https://orcasound.github.io/ais-shipnoise/hydrophones.html
 
 Each run makes a single AISHub area request (`build_site.py`) that feeds both pages, keeping well under AISHub's rate limit.
+Each node map has an inline live-audio player that streams the node's HLS feed from the Orcasound audio bucket (`Site.stream_node`).
 Hydrophone nodes and their listening zones (bearing range, clockwise, and max range in km) are defined in `hydrophones.py`.
 
 ## Local use

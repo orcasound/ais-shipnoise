@@ -3,7 +3,6 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="600">
   <title>Vessels Near Hydrophones</title>
   <style>
     body { margin: 0; padding: 16px; font-family: system-ui, sans-serif; background: #fff; color: #222; }
@@ -16,9 +15,12 @@
     .zone, .none { color: #555; font-size: 0.9em; margin: 0 0 8px; }
     img { width: 100%; height: auto; display: block; }
     .map { position: relative; }
-    .listen { position: absolute; top: calc(11% + 6px); right: 12%; background: #0b5394; color: #fff; text-decoration: none;
-      font-weight: 600; font-size: 0.9em; padding: 6px 12px; border-radius: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+    .listen { position: absolute; top: calc(11% + 6px); right: 12%; background: #0b5394; color: #fff; border: 0; cursor: pointer;
+      font: inherit; font-weight: 600; font-size: 0.9em; padding: 6px 12px; border-radius: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
     .listen:hover, .listen:focus-visible { background: #08407a; }
+    .listen[aria-pressed="true"] { background: #c62828; }
+    .listen[data-state="loading"] { background: #555; cursor: progress; }
+    .listen[data-state="offline"], .listen[data-state="error"] { background: #888; }
     table { width: 100%; border-collapse: collapse; font-size: 0.85em; margin-top: 8px; display: block; overflow-x: auto; }
     th, td { text-align: left; padding: 3px 6px; border-bottom: 1px solid #eee; white-space: nowrap; }
     td:nth-child(n+4), th:nth-child(n+4) { text-align: right; }
@@ -34,5 +36,92 @@
   <main class="grid">
 SITE_CARDS
   </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.20/hls.min.js"></script>
+  <script>
+    // Inline live audio from each node's HLS stream. One stream plays at a time.
+    const AUDIO_BASE = "https://audio-orcasound-net.s3.us-west-2.amazonaws.com";
+    const OFFLINE_AFTER_MS = 5 * 60 * 1000;  // playlist not updated for this long => node offline
+    const PAGE_RELOAD_MS = 10 * 60 * 1000;   // pick up new maps, but never while audio is playing
+    const LABELS = {
+      idle: "\u25B6 Listen live", loading: "Loading\u2026", playing: "\u25A0 Stop",
+      offline: "Stream offline", error: "Stream error \u2013 retry",
+    };
+    const streamUrls = {};  // node -> current live.m3u8 URL
+    const audio = new Audio();
+    let hls = null, active = null;
+
+    function setState(btn, state) {
+      btn.dataset.state = state;
+      btn.textContent = LABELS[state];
+      btn.setAttribute("aria-pressed", state === "playing" || state === "loading" ? "true" : "false");
+    }
+
+    function stop() {
+      if (hls) { hls.destroy(); hls = null; }
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+      if (active) setState(active, "idle");
+      active = null;
+    }
+
+    function fail(btn) {
+      stop();
+      setState(btn, "error");
+    }
+
+    // Look up each node's current stream ahead of time so a click can start playback immediately
+    // (Safari only allows audio that starts synchronously from the click).
+    async function checkStream(btn) {
+      const node = btn.dataset.node;
+      try {
+        const latest = await fetch(`${AUDIO_BASE}/${node}/latest.txt`, { cache: "no-store" });
+        if (!latest.ok) throw new Error(latest.status);
+        const url = `${AUDIO_BASE}/${node}/hls/${(await latest.text()).trim()}/live.m3u8`;
+        const head = await fetch(url, { method: "HEAD", cache: "no-store" });
+        const modified = Date.parse(head.headers.get("Last-Modified"));
+        if (!head.ok || !(Date.now() - modified < OFFLINE_AFTER_MS)) throw new Error("stale");
+        streamUrls[node] = url;
+        if (btn !== active) setState(btn, "idle");
+      } catch (e) {
+        delete streamUrls[node];
+        if (btn !== active) setState(btn, "offline");
+      }
+    }
+
+    function play(btn) {
+      const url = streamUrls[btn.dataset.node];
+      stop();
+      if (!url) { setState(btn, "offline"); checkStream(btn); return; }
+      active = btn;
+      setState(btn, "loading");
+      if (window.Hls && Hls.isSupported()) {
+        hls = new Hls({ liveSyncDurationCount: 3 });
+        hls.on(Hls.Events.ERROR, (_, data) => { if (data.fatal && active === btn) fail(btn); });
+        hls.loadSource(url);
+        hls.attachMedia(audio);
+      } else if (audio.canPlayType("application/vnd.apple.mpegurl")) {
+        audio.src = url;
+      } else {
+        fail(btn);
+        return;
+      }
+      audio.play().then(() => { if (active === btn) setState(btn, "playing"); })
+                  .catch(() => { if (active === btn) fail(btn); });
+    }
+
+    const buttons = document.querySelectorAll(".listen");
+    buttons.forEach((btn) => {
+      setState(btn, "idle");
+      btn.addEventListener("click", () => (btn === active ? stop() : play(btn)));
+      checkStream(btn);
+    });
+    audio.addEventListener("playing", () => { if (active) setState(active, "playing"); });
+    audio.addEventListener("waiting", () => { if (active) setState(active, "loading"); });
+
+    setInterval(() => buttons.forEach((btn) => { if (btn !== active) checkStream(btn); }), 2 * 60 * 1000);
+    const loadedAt = Date.now();
+    setInterval(() => { if (!active && Date.now() - loadedAt > PAGE_RELOAD_MS) location.reload(); }, 30 * 1000);
+  </script>
 </body>
 </html>

@@ -79,11 +79,12 @@ def site_card(site, nearby, cache_bust):
     return (
         f'<section class="card" id="{site.slug}">'
         f"<h2>{html.escape(site.name)} <span class=\"count\">{len(nearby)}</span></h2>"
-        f'<p class="zone">Listening zone {site.az_min}°–{site.az_max}°, {site.max_range_km} km</p>'
+        f'<p class="zone">Listening zone {site.az_min}°–{site.az_max}°, {site.max_range_km} km · '
+        f'<a href="{LIVE_LISTEN_URL.format(slug=site.slug)}" target="_blank" rel="noopener">live.orcasound.net</a></p>'
         '<div class="map">'
         f'<a href="{img}"><img src="{img}?v={cache_bust}" alt="Map of moving vessels near {html.escape(site.name)}"></a>'
-        f'<a class="listen" href="{LIVE_LISTEN_URL.format(slug=site.slug)}" target="_blank" rel="noopener" '
-        f'aria-label="Listen live to {html.escape(site.name)} on live.orcasound.net">&#9654; Listen live</a>'
+        f'<button class="listen" type="button" data-node="{site.stream_node}" aria-pressed="false" '
+        f'aria-label="Play live audio from {html.escape(site.name)}">&#9654; Listen live</button>'
         "</div>"
         f"{table}</section>"
     )
