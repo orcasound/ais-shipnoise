@@ -1,4 +1,4 @@
-name: Update boat map
+name: Update boat maps
 
 on:
   schedule:
@@ -27,18 +27,11 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - name: Fetch boats and plot
+      - name: Fetch boats and build pages
         env:
           AISHUB_USERNAME: ${{ secrets.AISHUB_USERNAME }}
           MPLBACKEND: Agg
-        run: |
-          mkdir -p _site
-          python fetch_ww_boats_and_plot.py --output _site/latest.png
-
-      - name: Build page
-        run: |
-          now="$(TZ=America/Los_Angeles date '+%Y-%m-%d %H:%M %Z')"
-          sed -e "s/UPDATED_AT/$now/" -e "s/CACHE_BUST/$(date +%s)/" web/index.html > _site/index.html
+        run: python build_site.py --out _site
 
       - uses: actions/upload-pages-artifact@v5
         with:

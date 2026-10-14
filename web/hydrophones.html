@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="600">
+  <title>Vessels Near Hydrophones</title>
+  <style>
+    body { margin: 0; padding: 16px; font-family: system-ui, sans-serif; background: #fff; color: #222; }
+    header { text-align: center; }
+    header p { color: #555; font-size: 0.9em; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr)); gap: 16px; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 12px; min-width: 0; }
+    .card h2 { margin: 0 0 4px; font-size: 1.15em; }
+    .count { background: #c62828; color: #fff; border-radius: 10px; padding: 0 8px; font-size: 0.85em; }
+    .zone, .none { color: #555; font-size: 0.9em; margin: 0 0 8px; }
+    img { width: 100%; height: auto; display: block; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85em; margin-top: 8px; display: block; overflow-x: auto; }
+    th, td { text-align: left; padding: 3px 6px; border-bottom: 1px solid #eee; white-space: nowrap; }
+    td:nth-child(n+4), th:nth-child(n+4) { text-align: right; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Moving Vessels Near Orcasound Hydrophones</h1>
+    <p>AIS positions from <a href="https://www.aishub.net/">AISHub</a>: vessels moving &gt; 0.5 kn, reported in the last 15 min, inside each node's listening zone (shaded); numbers on the map match the table.
+      Gray dots are moving vessels outside the zone. Arrows show projected 10-minute track. Updated UPDATED_AT.</p>
+    <p><a href="./">Whale watch boats map</a> · <a href="https://github.com/orcasound/ais-shipnoise">Source on GitHub</a></p>
+  </header>
+  <main class="grid">
+SITE_CARDS
+  </main>
+</body>
+</html>
