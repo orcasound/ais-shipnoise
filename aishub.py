@@ -2,6 +2,7 @@ import bz2
 import gzip
 import json
 import os
+import time
 
 import requests
 
@@ -15,6 +16,7 @@ except ImportError:
 # AIShub username is a credential: read it from the environment (or a local .env file), never commit it.
 AISHUB_USERNAME = os.environ.get("AISHUB_USERNAME")
 AISHUB_URL = "https://data.aishub.net/ws.php"
+RATE_LIMIT_WAIT_S = 65  # AISHub allows about one request per minute per username
 
 
 def _decompress(content):
@@ -29,13 +31,18 @@ def _request(params, username):
     if not username:
         raise RuntimeError("AISHUB_USERNAME is not set; export it or add it to a .env file (see .env.example)")
     params = {"username": username, "format": 1, "output": "json", **params}
-    response = requests.get(AISHUB_URL, params=params, timeout=30)
-    response.raise_for_status()
+    for attempt in range(2):
+        response = requests.get(AISHUB_URL, params=params, timeout=30)
+        response.raise_for_status()
 
-    data = json.loads(_decompress(response.content))
+        data = json.loads(_decompress(response.content))
 
-    meta = data[0]
-    if meta.get("ERROR"):
+        meta = data[0]
+        if not meta.get("ERROR"):
+            break
+        if attempt == 0 and "too frequent" in str(meta.get("ERROR_MESSAGE", "")).lower():
+            time.sleep(RATE_LIMIT_WAIT_S)
+            continue
         raise RuntimeError(f"AISHub API error: {meta}")
 
     return data[1] if len(data) > 1 else []
