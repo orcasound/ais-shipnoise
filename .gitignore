@@ -1,0 +1,16 @@
+# Credentials
+.env
+*.env
+!.env.example
+
+# Environments / IDE
+.venv/
+venv/
+.idea/
+__pycache__/
+*.pyc
+
+# Generated output
+*.png
+plots/
+_site/

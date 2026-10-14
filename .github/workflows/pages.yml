@@ -1,0 +1,55 @@
+name: Update boat map
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"  # every 30 min (UTC); GitHub may delay scheduled runs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Fetch boats and plot
+        env:
+          AISHUB_USERNAME: ${{ secrets.AISHUB_USERNAME }}
+          MPLBACKEND: Agg
+        run: |
+          mkdir -p _site
+          python fetch_ww_boats_and_plot.py --output _site/latest.png
+
+      - name: Build page
+        run: |
+          now="$(TZ=America/Los_Angeles date '+%Y-%m-%d %H:%M %Z')"
+          sed -e "s/UPDATED_AT/$now/" -e "s/CACHE_BUST/$(date +%s)/" web/index.html > _site/index.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
