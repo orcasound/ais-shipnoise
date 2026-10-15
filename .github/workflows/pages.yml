@@ -2,7 +2,9 @@ name: Update boat maps
 
 on:
   schedule:
-    - cron: "*/30 * * * *"  # every 30 min (UTC); GitHub may delay scheduled runs
+    # Backup only: GitHub often delays or drops scheduled runs. Runs are normally started every
+    # 30 min by an external scheduler (cron-job.org) calling the workflow_dispatch API.
+    - cron: "7,37 * * * *"  # off the busy :00/:30 marks
   workflow_dispatch:
 
 permissions:
