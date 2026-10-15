@@ -4,7 +4,9 @@ Makes a single AISHub area request per run, so both pages share one call against
 """
 import argparse
 import html
+import json
 import os
+import shutil
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -120,7 +122,13 @@ def build(out_dir):
     with open(os.path.join(out_dir, "whale-watch.html"), "w") as f:
         f.write(render_template("whale-watch.html", UPDATED_AT=updated, CACHE_BUST=cache_bust))
     with open(os.path.join(out_dir, "hydrophones.html"), "w") as f:
-        f.write(render_template("hydrophones.html", UPDATED_AT=updated, SITE_CARDS="\n".join(cards)))
+        f.write(render_template(
+            "hydrophones.html", UPDATED_AT=updated, SITE_CARDS="\n".join(cards), CACHE_BUST=cache_bust
+        ))
+    # Open pages poll version.json and reload when the build changes (web/autoreload.js)
+    shutil.copy(os.path.join(WEB_DIR, "autoreload.js"), out_dir)
+    with open(os.path.join(out_dir, "version.json"), "w") as f:
+        json.dump({"build": cache_bust, "updated": updated}, f)
 
 
 if __name__ == "__main__":

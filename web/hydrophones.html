@@ -42,7 +42,6 @@ SITE_CARDS
     // Inline live audio from each node's HLS stream. One stream plays at a time.
     const AUDIO_BASE = "https://audio-orcasound-net.s3.us-west-2.amazonaws.com";
     const OFFLINE_AFTER_MS = 5 * 60 * 1000;  // playlist not updated for this long => node offline
-    const PAGE_RELOAD_MS = 10 * 60 * 1000;   // pick up new maps, but never while audio is playing
     const LABELS = {
       idle: "\u25B6 Listen live", loading: "Loading\u2026", playing: "\u25A0 Stop",
       offline: "Stream offline", error: "Stream error \u2013 retry",
@@ -121,8 +120,8 @@ SITE_CARDS
     audio.addEventListener("waiting", () => { if (active) setState(active, "loading"); });
 
     setInterval(() => buttons.forEach((btn) => { if (btn !== active) checkStream(btn); }), 2 * 60 * 1000);
-    const loadedAt = Date.now();
-    setInterval(() => { if (!active && Date.now() - loadedAt > PAGE_RELOAD_MS) location.reload(); }, 30 * 1000);
+    window.canReload = () => !active;  // autoreload.js: don't cut off live audio for new maps
   </script>
+  <script src="autoreload.js?v=CACHE_BUST" data-build="CACHE_BUST"></script>
 </body>
 </html>
