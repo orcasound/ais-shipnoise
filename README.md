@@ -2,7 +2,7 @@
 
 Fetches current AIS positions of Salish Sea whale watch boats from [AISHub](https://www.aishub.net/) and plots them on an OpenStreetMap basemap.
 
-Live pages (rebuilt every ~30 min by GitHub Actions):
+Live pages (rebuilt every ~15 min by GitHub Actions):
 - Whale watch boats: https://orcasound.github.io/ais-shipnoise/whale-watch.html
 - Moving vessels near each hydrophone node: https://orcasound.github.io/ais-shipnoise/hydrophones.html
 
@@ -29,7 +29,7 @@ The AISHub username is read from the `AISHUB_USERNAME` environment variable (or 
 
 ## Scheduling
 
-GitHub often delays or drops `schedule` runs, so the workflow is started every 30 minutes by an external
+GitHub often delays or drops `schedule` runs, so the workflow is started every 15 minutes by an external
 scheduler (cron-job.org) that calls the GitHub API:
 
 ```
