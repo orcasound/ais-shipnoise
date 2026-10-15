@@ -26,3 +26,17 @@ Boats to track are listed in `whale_watch_boats.txt`.
 ## Credentials
 
 The AISHub username is read from the `AISHUB_USERNAME` environment variable (or a local `.env`, which is gitignored). In GitHub Actions it comes from the repository secret `AISHUB_USERNAME`. Never commit it.
+
+## Scheduling
+
+GitHub often delays or drops `schedule` runs, so the workflow is started every 30 minutes by an external
+scheduler (cron-job.org) that calls the GitHub API:
+
+```
+POST https://api.github.com/repos/orcasound/ais-shipnoise/actions/workflows/pages.yml/dispatches
+Authorization: Bearer <fine-grained token: this repo only, Actions read & write>
+Accept: application/vnd.github+json
+{"ref": "main"}
+```
+
+The workflow's own `schedule` (minutes 7 and 37) remains as a backup.
