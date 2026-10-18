@@ -14,3 +14,10 @@ __pycache__/
 *.png
 plots/
 _site/
+
+# Local AIS report archive
+*.db
+*.parquet
+
+# Local screenshots (may show AWS account details)
+screenshots/

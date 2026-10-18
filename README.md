@@ -23,9 +23,33 @@ python build_site.py --out _site               # builds both pages, as the GitHu
 
 Boats to track are listed in `whale_watch_boats.txt`.
 
+## Report archive
+
+Every `build_site.py` run saves the reports for moving vessels (SOG > 0.5 kn) to a **private** S3 bucket,
+`orcasound-ais-archive-648183724555-us-west-2-an` (us-west-2), as one small Parquet file per run under
+`ais/reports/report_date=YYYY-MM-DD/`. AIShub data may not be redistributed: keep the bucket private and never
+commit, publish or log report contents. Archiving is best effort, so an S3 failure only warns and the pages still build.
+
+Query with the read-only keys in `.env` (reports AIShub repeated in later requests are dropped):
+
+```bash
+python ais_db.py query --mmsi 316001234 > ship.csv               # by MMSI (one or more)
+python ais_db.py query --class Cargo Tanker --start 2026-10-01 --end 2026-10-07   # by class and UTC time range
+```
+
+Classes are the broad AIS ship-type categories shown on the hydrophone page (Cargo, Tanker, Passenger, Tug, ...).
+From Python: `ais_db.query_reports(mmsi=..., vessel_class=..., start=..., end=...)`.
+Set `AIS_ARCHIVE` to a local directory to write and query a local archive instead (for testing).
+
+Access (AWS account 648183724555):
+- GitHub Actions uses the IAM role `ais-shipnoise-writer` via OIDC (no stored keys); it may only `s3:PutObject` under `ais/`,
+  and only from `main` of this repo.
+- The IAM user `ais-archive-reader` may only list and read under `ais/`; its keys go in your local `.env`.
+
 ## Credentials
 
 The AISHub username is read from the `AISHUB_USERNAME` environment variable (or a local `.env`, which is gitignored). In GitHub Actions it comes from the repository secret `AISHUB_USERNAME`. Never commit it.
+The same applies to the AWS keys for the archive; GitHub Actions needs none (it uses the `ais-shipnoise-writer` role).
 
 ## Scheduling
 

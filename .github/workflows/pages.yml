@@ -29,6 +29,12 @@ jobs:
 
       - run: pip install -r requirements.txt
 
+      # Short-lived credentials for the private AIS archive; the role may only s3:PutObject under ais/
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::648183724555:role/ais-shipnoise-writer
+          aws-region: us-west-2
+
       - name: Fetch boats and build pages
         env:
           AISHUB_USERNAME: ${{ secrets.AISHUB_USERNAME }}

@@ -7,10 +7,10 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 from cartopy.io.img_tiles import OSM
 
+from aishub import SOG_NOT_AVAILABLE
 from plot_boats import auto_tile_zoom, speed_vector_endpoint
 
 EARTH_RADIUS_KM = 6371.0
-SOG_NOT_AVAILABLE = 102.3  # AIS value meaning "speed not available"
 
 
 @dataclass(frozen=True)

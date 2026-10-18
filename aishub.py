@@ -17,6 +17,7 @@ except ImportError:
 AISHUB_USERNAME = os.environ.get("AISHUB_USERNAME")
 AISHUB_URL = "https://data.aishub.net/ws.php"
 RATE_LIMIT_WAIT_S = 65  # AISHub allows about one request per minute per username
+SOG_NOT_AVAILABLE = 102.3  # AIS value meaning "speed not available"
 
 
 def _decompress(content):
@@ -65,3 +66,18 @@ def fetch_by_area(latmin, latmax, lonmin, lonmax, username=AISHUB_USERNAME):
         },
         username,
     )
+
+
+def vessel_type(code):
+    """Broad AIS ship-type category for an AIS type code."""
+    if not code:
+        return ""
+    for low, high, label in (
+        (30, 30, "Fishing"), (31, 32, "Towing"), (33, 34, "Dredging/diving"), (35, 35, "Military"),
+        (36, 36, "Sailing"), (37, 37, "Pleasure"), (40, 49, "High-speed craft"), (50, 50, "Pilot"),
+        (51, 51, "Search & rescue"), (52, 52, "Tug"), (53, 59, "Special craft"),
+        (60, 69, "Passenger"), (70, 79, "Cargo"), (80, 89, "Tanker"), (90, 99, "Other"),
+    ):
+        if low <= code <= high:
+            return label
+    return ""

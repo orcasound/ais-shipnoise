@@ -12,34 +12,20 @@ from zoneinfo import ZoneInfo
 
 import matplotlib.pyplot as plt
 
-from aishub import fetch_by_area
+from ais_db import store_reports
+from aishub import fetch_by_area, vessel_type
 from get_mmsi import get_mmsi_list
 from hydrophones import SITES, boats_near_site, plot_site
 from plot_boats import plot_boats
 
 LOCAL_TZ = ZoneInfo("America/Los_Angeles")
 
-# Covers the whale watch map and every hydrophone node (latmin, latmax, lonmin, lonmax)
-REGION = (47.25, 49.3, -124.2, -122.0)
+# Covers the whale watch map, every hydrophone node and Vancouver/Burrard Inlet (latmin, latmax, lonmin, lonmax)
+REGION = (47.25, 49.35, -124.2, -122.0)
 
 LIVE_LISTEN_URL = "https://live.orcasound.net/listen/{slug}"
 
 WEB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
-
-
-def vessel_type(code):
-    """Broad AIS ship-type category for an AIS type code."""
-    if not code:
-        return ""
-    for low, high, label in (
-        (30, 30, "Fishing"), (31, 32, "Towing"), (33, 34, "Dredging/diving"), (35, 35, "Military"),
-        (36, 36, "Sailing"), (37, 37, "Pleasure"), (40, 49, "High-speed craft"), (50, 50, "Pilot"),
-        (51, 51, "Search & rescue"), (52, 52, "Tug"), (53, 59, "Special craft"),
-        (60, 69, "Passenger"), (70, 79, "Cargo"), (80, 89, "Tanker"), (90, 99, "Other"),
-    ):
-        if low <= code <= high:
-            return label
-    return ""
 
 
 def vessel_length(boat):
@@ -99,6 +85,11 @@ def build(out_dir):
     cache_bust = str(int(now.timestamp()))
 
     boats = fetch_by_area(*REGION)
+    # The archive is best effort: an S3 problem must not stop the public pages from updating
+    try:
+        print(f"Archived {store_reports(boats, now)} moving-vessel reports")
+    except Exception as e:
+        print(f"::warning::AIS archive not updated: {type(e).__name__}: {e}")
 
     ww_mmsi = set(get_mmsi_list())
     ww_boats = [b for b in boats if b["MMSI"] in ww_mmsi]
