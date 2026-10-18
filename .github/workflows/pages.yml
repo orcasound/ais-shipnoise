@@ -29,8 +29,10 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      # Short-lived credentials for the private AIS archive; the role may only s3:PutObject under ais/
+      # Short-lived credentials for the private AIS archive; the role may only s3:PutObject under ais/.
+      # A login failure must not stop the pages updating: build_site.py then just warns that archiving was skipped.
       - uses: aws-actions/configure-aws-credentials@v6
+        continue-on-error: true
         with:
           role-to-assume: arn:aws:iam::648183724555:role/ais-shipnoise-writer
           aws-region: us-west-2
