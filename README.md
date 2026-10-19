@@ -46,6 +46,34 @@ Access (AWS account 648183724555):
   and only from `main` of this repo.
 - The IAM user `ais-archive-reader` may only list and read under `ais/`; its keys go in your local `.env`.
 
+## Querying the archive
+
+Access is for Orcasound collaborators only; ask the archive's maintainer for read access. You will get your own
+read-only AWS access key (members of the IAM group `ais-archive-readers`). Keep it in your local `.env` only: never
+commit, email or post it, and do not share query results outside the project.
+
+```bash
+git clone https://github.com/orcasound/ais-shipnoise.git
+cd ais-shipnoise
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env      # fill in AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY (AISHUB_USERNAME is not needed)
+python ais_db.py query --class Cargo Tanker --start 2026-10-19 > cargo.csv
+```
+
+Options (all optional, combine as needed; times are UTC):
+- `--mmsi 316001234 [...]`: one or more MMSI numbers
+- `--class Cargo Tanker [...]`: vessel classes; quote multi-word ones, e.g. `"High-speed craft"`
+- `--start 2026-10-19` / `--end "2026-10-20 12:00"`: write dates as `YYYY-MM-DD`; an end date on its own covers that whole day
+
+The CSV goes to standard output and the number of reports to standard error. Data starts on 2026-10-19 (UTC).
+In PyCharm, put the options (e.g. `query --class Cargo`) in the run configuration's **Script parameters** and set the
+working directory to the repository folder so `.env` is found. From Python, `ais_db.query_reports(...)` returns a list
+of dicts (`pandas.DataFrame(rows)` makes a table).
+
+If boto3 fails to import with `cannot import name ... from 'botocore...'`, boto3 and botocore are mismatched:
+install matching versions, e.g. `pip install "boto3==1.43.0" "botocore==1.43.0"`.
+
 ## Credentials
 
 The AISHub username is read from the `AISHUB_USERNAME` environment variable (or a local `.env`, which is gitignored). In GitHub Actions it comes from the repository secret `AISHUB_USERNAME`. Never commit it.
