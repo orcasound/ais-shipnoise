@@ -38,7 +38,23 @@ python ais_db.py query --class Cargo Tanker --start 2026-10-01 --end 2026-10-07 
 ```
 
 Classes are the broad AIS ship-type categories shown on the hydrophone page (Cargo, Tanker, Passenger, Tug, ...).
-From Python: `ais_db.query_reports(mmsi=..., vessel_class=..., start=..., end=...)`.
+From Python: `ais_db.query_reports(mmsi=..., vessel_class=..., start=..., end=..., bbox=(latmin, latmax, lonmin, lonmax))`.
+
+`ship_summary.py` summarizes the vessels seen in a lat/lon box (default: the Anacortes approaches) over a UTC date range,
+one row per vessel (reports, separate visits, first/last seen, speeds, destinations) plus per-class totals:
+
+```bash
+python ship_summary.py --start 2026-10-19 --end 2026-10-23                       # Anacortes box
+python ship_summary.py --bbox 48.40 48.60 -122.80 -122.50 --class Tanker Tug --csv out.csv
+```
+
+`plot_tracks.py` maps the tracks of vessels of given class(es) that passed through the box, from `--pad` hours
+(default 6) before to after each pass, with arrowheads for direction. Maps go to `plots/` (git-ignored):
+
+```bash
+python plot_tracks.py --class Tanker --start 2026-10-19 --end 2026-10-23
+python plot_tracks.py --class Tug Towing --pad 3 --zoom 10 --show
+```
 Set `AIS_ARCHIVE` to a local directory to write and query a local archive instead (for testing).
 
 Access (AWS account 648183724555):

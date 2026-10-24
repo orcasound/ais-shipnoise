@@ -149,11 +149,12 @@ def _as_datetime(value, end=False):
     return dt
 
 
-def query_reports(mmsi=None, vessel_class=None, start=None, end=None, archive=ARCHIVE):
+def query_reports(mmsi=None, vessel_class=None, start=None, end=None, bbox=None, archive=ARCHIVE):
     """Reports oldest first, with AIShub's repeated reports removed. Any filter may be omitted.
 
     mmsi: one MMSI or a list. vessel_class: one class (e.g. "Cargo") or a list.
     start/end: datetimes or "YYYY-MM-DD[ HH:MM[:SS]]" UTC strings; the range is inclusive.
+    bbox: (latmin, latmax, lonmin, lonmax), inclusive, the same order as aishub.fetch_by_area().
     """
     where, params = [], []
     for column, value in (("mmsi", mmsi), ("vessel_class", vessel_class)):
@@ -171,6 +172,9 @@ def query_reports(mmsi=None, vessel_class=None, start=None, end=None, archive=AR
         end = _as_datetime(end, end=True)
         where += ["report_date <= ?", "report_time <= ?"]
         params += [end.date(), end]
+    if bbox is not None:
+        where += ["latitude BETWEEN ? AND ?", "longitude BETWEEN ? AND ?"]
+        params += list(bbox)
     source = f"read_parquet('{archive.rstrip('/')}/*/*.parquet', hive_partitioning = true, union_by_name = true)"
     sql = (
         f"SELECT * EXCLUDE (report_date) FROM {source}"
